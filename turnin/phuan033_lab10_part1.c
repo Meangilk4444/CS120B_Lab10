@@ -66,7 +66,7 @@ void ThreeLEDsSM() //0-1-2 one second
 			break;
 
 		case first_led:
-			if(count_one >= 30)
+			if(count_one >= 10)
 			{
 				count_one = 0x00;
 				state_one = second_led;
@@ -75,7 +75,7 @@ void ThreeLEDsSM() //0-1-2 one second
 			break;
 
 		case second_led:
-			if(count_one >= 30)
+			if(count_one >= 10)
 			{
 				count_one = 0x00;
 				state_one = third_led;
@@ -84,7 +84,7 @@ void ThreeLEDsSM() //0-1-2 one second
 			break;
 
 		case third_led:
-			if(count_one >= 30)
+			if(count_one >= 10)
 			{
 				count_one = 0x00;
 				state_one = first_led;
@@ -129,7 +129,7 @@ void BlinkingLEDSM()
 			break;
 
 		case blink:
-			if(count_two >= 100)
+			if(count_two >= 10)
 			{
 				count_two = 0x00;
 				state_two = blink2;
@@ -138,7 +138,7 @@ void BlinkingLEDSM()
 			break;
 
 		case blink2:
-			if(count_two >= 100)
+			if(count_two >= 10)
 			{
 				count_two = 0x00;
 				state_two = blink;
@@ -202,7 +202,7 @@ void CombineLEDsSM()
 int main(void) {
     /* Insert DDR and PORT initializations */
 	DDRB = 0xFF; PORTB = 0x00;
-	TimerSet(10);
+	TimerSet(100);
 	TimerOn();
     /* Insert your solution below */
     while (1) {
