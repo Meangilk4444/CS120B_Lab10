@@ -53,43 +53,29 @@ enum States_three{START, output} state_three;
 
 unsigned char threeLEDs = 0x00;
 unsigned char led = 0x00;
-unsigned char count_one = 0x00;
-unsigned char count_two = 0x00;
+//unsigned char count_one = 0x00;
+//unsigned char count_two = 0x00;
+unsigned char out = 0x00;
 void ThreeLEDsSM() //0-1-2 one second
 {
 	switch(state_one)
 	{
 		case start:
-			count_one = 0x00;
+//			count_one = 0x00;
 			//threeLEDS = 0x00;
 			state_one = first_led;
 			break;
 
 		case first_led:
-			if(count_one >= 10)
-			{
-				count_one = 0x00;
-				state_one = second_led;
-			}
-			count_one++;
+			state_one = second_led;
 			break;
 
 		case second_led:
-			if(count_one >= 10)
-			{
-				count_one = 0x00;
-				state_one = third_led;
-			}
-			count_one++;
+			state_one = third_led;
 			break;
 
 		case third_led:
-			if(count_one >= 10)
-			{
-				count_one = 0x00;
-				state_one = first_led;
-			}
-			count_one++;
+			state_one = first_led;
 			break;
 
 		default:
@@ -124,26 +110,16 @@ void BlinkingLEDSM()
 	{
 		case Start:
 			//PORTB = 0x00;
-			count_two = 0x00;
+		//	count_two = 0x00;
 			state_two = blink;
 			break;
 
 		case blink:
-			if(count_two >= 10)
-			{
-				count_two = 0x00;
-				state_two = blink2;
-			}
-			count_two++;
+			state_two = blink2;
 			break;
 
 		case blink2:
-			if(count_two >= 10)
-			{
-				count_two = 0x00;
-				state_two = blink;
-			}
-			count_two++;
+			state_two = blink;
 			break;
 
 		default:
@@ -177,8 +153,7 @@ void CombineLEDsSM()
 			break;
 
 		case output:
-			ThreeLEDsSM();
-			BlinkingLEDSM();
+			
 			break;
 
 		default:
@@ -202,15 +177,29 @@ void CombineLEDsSM()
 int main(void) {
     /* Insert DDR and PORT initializations */
 	DDRB = 0xFF; PORTB = 0x00;
-	TimerSet(100);
+	const unsigned short period = 1;
+	unsigned short three_led_count = 1000;
+	unsigned short blink_led_count = 1000;
+	TimerSet(period);
 	TimerOn();
     /* Insert your solution below */
     while (1) {
+	    if(three_led_count >= 1000)
+	    {
 	    	ThreeLEDsSM();
+		three_led_count = 0;
+	    }
+	    if(blink_led_count >= 1000)
+	    {
 		BlinkingLEDSM();
+		blink_led_count = 0;
+	    }
 		CombineLEDsSM();
 		while(!TimerFlag){}
 		TimerFlag = 0;
+		three_led_count += period;
+		blink_led_count += period;
+    
     }
     return 1;
    }

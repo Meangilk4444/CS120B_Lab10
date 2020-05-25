@@ -54,7 +54,6 @@ enum States_four{begin, init, off, on} state_four;
 
 unsigned char threeLEDs = 0x00;
 unsigned char led = 0x00;
-unsigned short count_one = 0x00;
 unsigned short count_two = 0x00;
 unsigned char out = 0x00;
 unsigned char button = 0x00;
@@ -64,36 +63,21 @@ void ThreeLEDsSM() //0-1-2 one second
 	switch(state_one)
 	{
 		case start:
-			count_one = 0x00;
+//			count_one = 0x00;
 			//threeLEDS = 0x00;
 			state_one = first_led;
 			break;
 
 		case first_led:
-			if(count_one >= 300)
-			{
-				count_one = 0x00;
-				state_one = second_led;
-			}
-			count_one++;
+			state_one = second_led;
 			break;
 
 		case second_led:
-			if(count_one >= 300)
-			{
-				count_one = 0x00;
-				state_one = third_led;
-			}
-			count_one++;
+			state_one = third_led;
 			break;
 
 		case third_led:
-			if(count_one >= 300)
-			{
-				count_one = 0x00;
-				state_one = first_led;
-			}
-			count_one++;
+			state_one = first_led;
 			break;
 
 		default:
@@ -128,32 +112,18 @@ void BlinkingLEDSM()
 	{
 		case Start:
 			//PORTB = 0x00;
-			count_two = 0x00;
+//			count_two = 0x00;
 			state_two = blink;
 			break;
 
 		case blink:
-			if(count_two < 1000)
-			{
-				count_two++;
-				state_two = blink;
-			}
-			else
-			{
-				count_two = 0x00;
-				state_two = blink2;
-			}
+			state_two = blink2;
 			//count_two++;
 			break;
 
 
 		case blink2:
-			if(count_two >= 1000)
-			{
-				count_two = 0x00;
-				state_two = blink;
-			}
-			count_two++;
+			state_two = blink;
 			break;
 
 
@@ -182,7 +152,7 @@ void BlinkingLEDSM()
 
 }
 
-
+unsigned char freq = 0x01;
 unsigned char count_three = 0x00;
 
 void Speaker()
@@ -206,22 +176,11 @@ void Speaker()
 			break;
 
 		case on:
-			if(count_three >= 2)
-			{
-				count_three = 0x00;
-				state_four = off;
-			}
-			count_three++;
+			state_four = off;
 			break;
 
 		case off:	
-			if(count_three >= 2)
-			{
-				count_three = 0x00;
-				state_four = init;
-			}
-			count_three++;
-	
+			state_four = init;
 			break;
 
 		default:
@@ -245,6 +204,8 @@ void Speaker()
 		case off:
 			speak = 0x00;
 			break;
+
+		
 	}
 }
 
@@ -281,18 +242,37 @@ int main(void) {
     /* Insert DDR and PORT initializations */
 	DDRB = 0xFF; PORTB = 0x00;
 	DDRA = 0x00; PORTA = 0xFF;
-	TimerSet(1);
+	unsigned short three_led_count = 300;
+	unsigned short blink_led_count = 1000;
+	unsigned short s = 2;
+	const unsigned long period = 1;
+	TimerSet(period);
 	TimerOn();
 //	button = ~PINA & 0x04;
     /* Insert your solution below */
     while (1) {
 	    //	button = ~PINA & 0x04;
+	    if(three_led_count >= 300)
+	    {
 	    	ThreeLEDsSM();
+		three_led_count = 0;
+	    }
+	    if(blink_led_count >= 1000)
+	    {
 		BlinkingLEDSM();
-		Speaker();
+		blink_led_count = 0;
+	    }
+	    if(s >= 2)
+	    {
+		    Speaker();
+		    s = 0;
+	    }
 		CombineLEDsSM();
 		while(!TimerFlag){}
 		TimerFlag = 0;
+		three_led_count += period;
+		blink_led_count += period;
+		s += period;
     }
     return 1;
    }
