@@ -211,7 +211,7 @@ void Speaker()
 	}
 }
 
-enum States_five{S, INIT, up, down} state_five;
+enum States_five{S, INIT, up, down, wait, wait2} state_five;
 void IncDecButton()
 {
 	switch(state_five)
@@ -232,11 +232,33 @@ void IncDecButton()
 			break;
 
 		case up:
-			state_five = S;
+			state_five = wait;
+			break;
+
+		case wait:
+			if(butt == 0x00)
+			{
+				state_five = S;
+			}
+			else
+			{
+				state_five = wait;
+			}
 			break;
 
 		case down:
-			state_five = S;
+			state_five = wait2;
+			break;
+
+		case wait2:
+			if(butt == 0x00)
+			{
+				state_five = S;
+			}
+			else
+			{
+				state_five = wait2;
+			}
 			break;
 
 		default:
@@ -294,16 +316,16 @@ int main(void) {
     /* Insert DDR and PORT initializations */
 	DDRB = 0xFF; PORTB = 0x00;
 	DDRA = 0x00; PORTA = 0xFF;
-	unsigned short three_led_count = 300;
-	unsigned short blink_led_count = 1000;
-	unsigned short s = 2;
+	unsigned short three_led_count = 0;
+	unsigned short blink_led_count = 0;
+	unsigned short s = 0;
 	const unsigned long period = 1;
 	TimerSet(period);
 	TimerOn();
 //	button = ~PINA & 0x04;
     /* Insert your solution below */
     while (1) {
-	    butt = ~PINA & 0x02;
+	    butt = ~PINA & 0x03;
 	    if(three_led_count >= 300)
 	    {
 	    	ThreeLEDsSM();
@@ -314,12 +336,13 @@ int main(void) {
 		BlinkingLEDSM();
 		blink_led_count = 0;
 	    }
+	    IncDecButton();
+
 	    if(s >= f)
 	    {
 		    Speaker();
 		    s = 0;
 	    }
-	    	IncDecButton();
 		CombineLEDsSM();
 		while(!TimerFlag){}
 		TimerFlag = 0;
