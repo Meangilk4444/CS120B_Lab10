@@ -48,14 +48,17 @@ void TimerSet(unsigned long M){
 }
 
 enum States_one{start, first_led, second_led, third_led} state_one;
-enum States_two{Start, blink, blink2} state_two;
+enum States_two{Start, blink, blink2, } state_two;
 enum States_three{START, output} state_three;
+enum States_four{begin, init, off, on} state_four;
 
 unsigned char threeLEDs = 0x00;
 unsigned char led = 0x00;
-unsigned char count_one = 0x00;
-unsigned char count_two = 0x00;
+unsigned short count_one = 0x00;
+unsigned short count_two = 0x00;
 unsigned char out = 0x00;
+unsigned char button = 0x00;
+unsigned char speak = 0x00;
 void ThreeLEDsSM() //0-1-2 one second
 {
 	switch(state_one)
@@ -67,7 +70,7 @@ void ThreeLEDsSM() //0-1-2 one second
 			break;
 
 		case first_led:
-			if(count_one >= 30)
+			if(count_one >= 300)
 			{
 				count_one = 0x00;
 				state_one = second_led;
@@ -76,7 +79,7 @@ void ThreeLEDsSM() //0-1-2 one second
 			break;
 
 		case second_led:
-			if(count_one >= 30)
+			if(count_one >= 300)
 			{
 				count_one = 0x00;
 				state_one = third_led;
@@ -85,7 +88,7 @@ void ThreeLEDsSM() //0-1-2 one second
 			break;
 
 		case third_led:
-			if(count_one >= 30)
+			if(count_one >= 300)
 			{
 				count_one = 0x00;
 				state_one = first_led;
@@ -130,22 +133,30 @@ void BlinkingLEDSM()
 			break;
 
 		case blink:
-			if(count_two >= 100)
+			if(count_two < 1000)
+			{
+				count_two++;
+				state_two = blink;
+			}
+			else
 			{
 				count_two = 0x00;
 				state_two = blink2;
 			}
-			count_two++;
+			//count_two++;
 			break;
 
+
 		case blink2:
-			if(count_two >= 100)
+			if(count_two >= 1000)
 			{
 				count_two = 0x00;
 				state_two = blink;
 			}
 			count_two++;
 			break;
+
+
 
 		default:
 			state_two = Start;
@@ -161,6 +172,8 @@ void BlinkingLEDSM()
 			led = 0x08;
 			break;
 
+		
+
 		case blink2:
 			led = 0x00;
 			break;
@@ -169,45 +182,114 @@ void BlinkingLEDSM()
 
 }
 
-void CombineLEDsSM()
+
+unsigned char count_three = 0x00;
+
+void Speaker()
 {
-	switch(state_three)
+	button = ~PINA & 0x04;
+	switch(state_four)
 	{
-		case START:
-			state_three = output;
+		case begin:
+			state_four = init;
 			break;
 
-		case output:
-			
+		case init:
+			if(button == 0x04)
+			{
+				state_four = on;
+			}
+			else
+			{
+				state_four = init;
+			}
+			break;
+
+		case on:
+			if(count_three >= 2)
+			{
+				count_three = 0x00;
+				state_four = off;
+			}
+			count_three++;
+			break;
+
+		case off:	
+			if(count_three >= 2)
+			{
+				count_three = 0x00;
+				state_four = init;
+			}
+			count_three++;
+	
 			break;
 
 		default:
-			state_three = START;
+			state_four = begin;
 			break;
 	}
 
-	switch(state_three)
+	switch(state_four)
 	{
-		case START:
-		break;
-
-		case output:
-			PORTB = threeLEDs | led;
+		case begin:
+			speak = 0x00;
 			break;
 
+		case init:
+			break;
+
+		case on:
+			speak = 0x10;
+			break;
+
+		case off:
+			speak = 0x00;
+			break;
 	}
 }
 
+void CombineLEDsSM()
+{
+        switch(state_three)
+        {
+                case START:
+                        state_three = output;
+                        break;
+
+                case output:
+//			Speaker();
+                        break;
+
+                default:
+                        state_three = START;
+                        break;
+        }
+
+        switch(state_three)
+        {
+                case START:
+                break;
+
+                case output:
+                        PORTB = threeLEDs | led | speak;
+                        break;
+
+        }
+}
 
 int main(void) {
     /* Insert DDR and PORT initializations */
 	DDRB = 0xFF; PORTB = 0x00;
-	TimerSet(10);
+	DDRA = 0x00; PORTA = 0xFF;
+	TimerSet(1);
 	TimerOn();
+//	button = ~PINA & 0x04;
     /* Insert your solution below */
     while (1) {
+	    //	button = ~PINA & 0x04;
 	    	ThreeLEDsSM();
 		BlinkingLEDSM();
+		Speaker();
 		CombineLEDsSM();
 		while(!TimerFlag){}
 		TimerFlag = 0;
